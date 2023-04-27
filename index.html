@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script>
+
+    <style>
+      body {
+        height: 100vh;
+        margin: 0; 
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .table {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+    }
+
+    .table button {
+        cursor: pointer;
+        padding: 32px;
+    }
+
+    .hide {
+        display: none;
+    }
+
+    </style>
+  </head>
+  <body>
+    
+    <button id="playBtn">Entrar no jogo</button>
+
+    <h1>Você é o jogador: <span id="playerValue"></span></h1>
+    
+    <div id="table" class="table hide">
+        
+    </div>
+
+    <script>
+        const socket = io({ autoConnect: false });
+        const playBtn = document.getElementById('playBtn');
+        const playerValueElem = document.getElementById('playerValue');
+        const table = document.getElementById('table');
+        let playerValue;
+
+        socket.on("connect", () => {
+            playBtn.classList.toggle('hide');
+            table.classList.toggle('hide');
+            createTable()
+        });
+
+        socket.on('player-value', (newPlayerValue) => {
+            playerValue = newPlayerValue
+            playerValueElem.innerHTML = newPlayerValue
+        });
+
+        socket.on('play', ({ x, y, value}) => {
+            document.getElementById(`x-${x}-y-${y}`).innerHTML = value
+        });
+
+        socket.on('play-not-possible', () => {
+            window.alert("Aguarde sua vez!")
+        });
+
+        socket.on('game-over', (gameOverMessage) => {
+            window.alert(gameOverMessage);
+            table.innerHTML = null;
+            createTable();
+        });
+
+        playBtn.addEventListener('click', () => {
+            socket.connect();
+        });
+      
+        const handlePlay = (elem) => {
+            const x = elem.target.getAttribute("data-x");
+            const y = elem.target.getAttribute("data-y");
+            socket.emit('play', { x, y, value: playerValue });
+        }
+
+        function createTable() {
+            for(let y = 0; y < 3; y++) {
+                for(let x = 0; x < 3; x++) {
+                    const newButton = document.createElement('button');
+                    newButton.setAttribute('data-x', x);
+                    newButton.setAttribute('data-y', y);
+                    newButton.setAttribute('id', `x-${x}-y-${y}`);
+                    newButton.addEventListener('click', handlePlay)
+                    table.appendChild(newButton);
+                }
+            }
+
+            
+        }
+        
+        
+    </script>
+  </body>
+</html>
