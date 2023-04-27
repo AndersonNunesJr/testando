@@ -7,6 +7,8 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+const port = process.env.PORT || 3001;
+
 let ultimaJogada = "O";
 let table = [
   ["", "", ""],
@@ -142,6 +144,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(3000, () => {
-  console.log("listening on *:3000");
+server.listen(port, () => {
+  console.log(`listening on ${port}`);
 });
